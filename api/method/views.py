@@ -1,14 +1,24 @@
-from django.shortcuts import render
-from django.http import HttpResponse
+from rest_framework.response import Response
+from rest_framework.views import APIView
+from rest_framework import status
+from .models import User
+from .serializers import UserSerializer, RegisterSerializer
 
-def get(request):
-    return HttpResponse("GET!")
+class UserList(APIView):
+    def get(self, request):
+        user = User.objects.all()
+        serializer = UserSerializer(user, many=True)
+        return Response(serializer.data)
 
-def post(request):
-    return HttpResponse("POST!")
-
-def put(request):
-    return HttpResponse("PUT!")
-
-def delete(request):
-    return HttpResponse("DELETE!")
+class UserRegister(APIView):
+    def get(self, request):
+        user = User.objects.all().order_by('-id')[:2]
+        serializer = UserSerializer(user, many=True)
+        return Response(serializer.data)
+    
+    def post(self, request):
+        serializer = RegisterSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "User registered successfully!"}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
